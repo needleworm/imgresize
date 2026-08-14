@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroResize - 로컬 이미지 일괄 리사이징 도구</title>
+  
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Main CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- JSZip CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+  <!-- Main Application Logic -->
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="glow-bg"></div>
+  
+  <div class="container">
+    <header class="app-header">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 3V15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1>AeroResize</h1>
+          <p class="subtitle">초고속 이미지 일괄 리사이징</p>
+        </div>
+      </div>
+      <div class="security-badge">
+        <span class="badge-dot"></span>
+        <span>100% 로컬 연산 (서버 전송 없음)</span>
+      </div>
+    </header>
+
+    <main class="app-grid">
+      <!-- Left Panel: Settings & Control -->
+      <section class="panel settings-panel">
+        <h2 class="section-title">리사이징 옵션 설정</h2>
+        
+        <div class="settings-group">
+          <label class="setting-label">기준 축 선택</label>
+          <div class="radio-cards">
+            <label class="radio-card">
+              <input type="radio" name="resize-mode" value="long-edge" checked>
+              <div class="card-content">
+                <span class="mode-name">긴 축 기준</span>
+                <span class="mode-desc">가장 긴 면을 고정</span>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="resize-mode" value="short-edge">
+              <div class="card-content">
+                <span class="mode-name">짧은 축 기준</span>
+                <span class="mode-desc">가장 짧은 면을 고정</span>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="resize-mode" value="width">
+              <div class="card-content">
+                <span class="mode-name">X축 기준 (너비)</span>
+                <span class="mode-desc">가로 길이를 고정</span>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="resize-mode" value="height">
+              <div class="card-content">
+                <span class="mode-name">Y축 기준 (높이)</span>
+                <span class="mode-desc">세로 길이를 고정</span>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="resize-mode" value="percent">
+              <div class="card-content">
+                <span class="mode-name">비율 기준 (%)</span>
+                <span class="mode-desc">백분율 크기 조절</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-group flex-1">
+            <label for="resize-value" class="setting-label" id="value-label-text">목표 크기 (px)</label>
+            <div class="input-wrapper">
+              <input type="number" id="resize-value" value="1200" min="1" step="1" required>
+              <span class="input-unit" id="value-unit">px</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <label class="setting-label">출력 파일 형식</label>
+          <div class="format-chips">
+            <label class="format-chip">
+              <input type="radio" name="output-format" value="original" checked>
+              <span>원본 유지</span>
+            </label>
+            <label class="format-chip">
+              <input type="radio" name="output-format" value="jpeg">
+              <span>JPEG</span>
+            </label>
+            <label class="format-chip">
+              <input type="radio" name="output-format" value="png">
+              <span>PNG</span>
+            </label>
+            <label class="format-chip">
+              <input type="radio" name="output-format" value="webp">
+              <span>WebP</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-group" id="quality-settings-group" style="display: none;">
+          <div class="slider-header">
+            <label for="image-quality" class="setting-label">압축 품질</label>
+            <span class="slider-value" id="quality-display">85%</span>
+          </div>
+          <input type="range" id="image-quality" min="1" max="100" value="85" class="custom-slider">
+        </div>
+
+        <div class="settings-group">
+          <label for="filename-suffix" class="setting-label">파일명 접미사 (Suffix)</label>
+          <input type="text" id="filename-suffix" value="_resized" placeholder="예: _resized">
+        </div>
+
+        <div class="action-buttons">
+          <button id="btn-resize" class="btn btn-primary" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            <span>전체 리사이징 실행</span>
+          </button>
+          
+          <button id="btn-download-all" class="btn btn-secondary" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>ZIP으로 일괄 다운로드</span>
+          </button>
+
+          <button id="btn-clear" class="btn btn-danger" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            <span>목록 비우기</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Right Panel: Upload area & Queue list -->
+      <section class="panel workspace-panel">
+        <div id="drop-zone" class="drop-zone">
+          <input type="file" id="file-input" multiple accept="image/*" class="file-input">
+          <div class="drop-zone-content">
+            <div class="upload-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            </div>
+            <h3>이미지 파일을 드래그하여 놓으세요</h3>
+            <p>또는 여기를 클릭해 파일을 선택할 수 있습니다 (여러 개 다중 선택 가능)</p>
+          </div>
+        </div>
+
+        <div class="list-header" id="queue-header" style="display: none;">
+          <h3 class="queue-title">업로드된 파일 목록 (<span id="file-count">0</span>개)</h3>
+          <div class="overall-progress-bar-container" id="overall-progress-container" style="display: none;">
+            <div class="progress-info">
+              <span>진행률: <span id="progress-text">0/0</span></span>
+            </div>
+            <div class="progress-bar-outer">
+              <div class="progress-bar-inner" id="overall-progress-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="image-queue" class="image-queue">
+          <!-- Image cards will be inserted here dynamically -->
+          <div class="empty-queue-message" id="empty-message">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><circle cx="10" cy="13" r="2"></circle><path d="m20 17-1.19-1.19a2 2 0 0 0-2.83 0L13 19"></path></svg>
+            <p>업로드된 이미지가 없습니다.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>&copy; 2026 AeroResize. 모든 연산은 사용자 브라우저 메모리 내에서 실행되며, 어떤 파일도 외부로 업로드되거나 전송되지 않습니다.</p>
+    </footer>
+  </div>
+</body>
+</html>
